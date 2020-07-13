@@ -52,6 +52,7 @@ run-kong:
 		-e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl" \
 		-e "KONG_GO_PLUGINS_DIR=/tmp/go-plugins" \
 		-e "KONG_PLUGINS=bundled,example" \
+		-e "KONG_LOG_LEVEL=debug" \
 		-p 8000:8000 \
 		-p 8443:8443 \
 		-p 127.0.0.1:8001:8001 \

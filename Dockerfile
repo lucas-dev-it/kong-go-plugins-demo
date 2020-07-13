@@ -2,6 +2,7 @@ FROM golang:alpine as builder
 
 RUN apk add --no-cache git gcc libc-dev
 RUN go get github.com/Kong/go-pluginserver
+RUN go get github.com/dgrijalva/jwt-go
 
 RUN mkdir /go-plugins
 COPY /plugins/example.go /go-plugins/
