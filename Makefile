@@ -9,13 +9,13 @@ run:
 	docker start konga
 	docker ps
 
-prepare: setup-containers run-kong-db run-kong-db-migration run-kong run-konga run-login-demo stop-all
+prepare: setup-containers run-kong-db run-kong-db-migration run-kong run-konga run-login-demo setup-endpoints setup-consumer stop-all
 
 setup-containers:
 	@echo '#### SETUP ALL CONTAINERS ####'
-	docker build --no-cache -t lucas-dev-it/kong-go-plugins-demo _demo/login-api-demo
 	docker pull pantsel/konga
 	docker build -t kong-go-plugins-demo/custom-plugins .
+	docker build --no-cache -t lucas-dev-it/kong-go-plugins-demo _demo/login-api-demo
 
 run-kong-db:
 	docker run -d --name kong-database \
@@ -51,7 +51,7 @@ run-kong:
 		-e "KONG_ADMIN_ERROR_LOG=/dev/stderr" \
 		-e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl" \
 		-e "KONG_GO_PLUGINS_DIR=/tmp/go-plugins" \
-		-e "KONG_PLUGINS=bundled,example" \
+		-e "KONG_PLUGINS=bundled,jwt-auth,example" \
 		-e "KONG_LOG_LEVEL=debug" \
 		-p 8000:8000 \
 		-p 8443:8443 \
@@ -66,7 +66,12 @@ run-konga:
 		pantsel/konga
 
 run-login-demo:
-	docker run -d -p 3333:3333 --name login-api-demo --network=kong-net lucas-dev-it/kong-go-plugins-demo:latest
+	docker run -d -p 3333:3333 \
+		-e "KEY=someKey" \
+		-e "SECRET_KEY=someSecret" \
+		--name login-api-demo \
+		--network=kong-net \
+		lucas-dev-it/kong-go-plugins-demo:latest
 
 stop-all:
 	docker stop kong-database kong konga login-api-demo
@@ -74,3 +79,7 @@ stop-all:
 setup-endpoints:
 	chmod +x setup_endpoints.sh
 	./setup_endpoints.sh
+
+setup-consumer:
+	chmod +x setup_consumer.sh
+	./setup_consumer.sh

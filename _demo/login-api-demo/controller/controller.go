@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -16,7 +17,6 @@ import (
 
 const (
 	basePath = "/api"
-	signKey  = "someFakeTokenJustForDemo"
 )
 
 type response struct {
@@ -87,13 +87,16 @@ func (h *handler) login(w io.Writer, r *http.Request) (interface{}, int, error) 
 }
 
 func buildJWT(scopes []string) (string, error) {
+	key := os.Getenv("KEY")
+	secretKey := os.Getenv("SECRET_KEY")
 	now := time.Now()
 	claims := jwt.MapClaims{}
 	claims["nbf"] = now.Unix()
 	claims["exp"] = now.Add(time.Minute * 15).Unix()
+	claims["iss"] = key
 	claims["scopes"] = scopes
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(signKey))
+	signedToken, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err
 	}

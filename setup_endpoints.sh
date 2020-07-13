@@ -18,18 +18,14 @@ http POST :8001/services/test-login-demo/routes \
   methods:='["GET"]' \
   name=test-login-demo-testkong-route
 
-# sets the example plugin globally on this service
+# sets the GO example plugin globally on this service
+#http POST :8001/routes/test-login-demo-testkong-route/plugins/ \
+#  name=example config:='{"allowed_scopes": "payment,order"}'
+
+## sets JWT token check plugin
 http POST :8001/routes/test-login-demo-testkong-route/plugins/ \
-  name=example config:='{"allowed_scopes": "payment,order"}'
+  name=jwt
 
-sleep 2
-
-# test the API call going through kong API gateway
-http POST :8000/api/users/login \
-  username=all_scopes_user \
-  password=123456789 \
-  Host:login-demo.com
-
-#http :8000/api/users/test-kong \
-#  Host:login-demo.com \
-#  Authorization:Bearer
+## sets JWT token claim check plugin
+http POST :8001/routes/test-login-demo-testkong-route/plugins/ \
+  name=jwt-auth config:='{"roles_claim_name":"scopes", "roles":["payment", "order"], "policy":"any"}'
