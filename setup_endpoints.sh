@@ -3,21 +3,29 @@ http POST :8001/services/ \
   name=test-login-demo \
   url=http://login-api-demo:3333
 
-# creates the route
+# creates the routes
 http POST :8001/services/test-login-demo/routes \
   hosts:='["login-demo.com"]' \
   paths:='["/api/users/login"]' \
   strip_path:=false \
-  methods:='["POST"]'
+  methods:='["POST"]' \
+  name=test-login-demo-login-route
 
-# sets the example plugin globally on this service
-http POST :8001/services/test-login-demo/plugins/ \
-  name=example
+http POST :8001/services/test-login-demo/routes \
+  hosts:='["login-demo.com"]' \
+  paths:='["/api/users/test-kong"]' \
+  strip_path:=false \
+  methods:='["GET"]' \
+  name=test-login-demo-testkong-route
 
-sleep 2
+# sets the GO example plugin globally on this service
+#http POST :8001/routes/test-login-demo-testkong-route/plugins/ \
+#  name=example config:='{"allowed_scopes": "payment,order"}'
 
-# test the API call going through kong API gateway
-http POST :8000/api/users/login \
-  username=all_scopes_user \
-  password=123456789 \
-  Host:login-demo.com
+## sets JWT token check plugin
+http POST :8001/routes/test-login-demo-testkong-route/plugins/ \
+  name=jwt
+
+## sets JWT token claim check plugin
+http POST :8001/routes/test-login-demo-testkong-route/plugins/ \
+  name=jwt-auth config:='{"roles_claim_name":"scopes", "roles":["payment", "order"], "policy":"any"}'
